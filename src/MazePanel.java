@@ -3,18 +3,22 @@ import javax.swing.JPanel;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.util.List;
+import java.util.ArrayList;
 
 public class MazePanel extends JPanel {
 
     private Maze maze;
-
     private List<Cell> solutionPath;
+    private List<Cell> exploredCells;
+    private boolean showExploredCells;
 
     public MazePanel(Maze maze) {
-    this.maze = maze;
-    solutionPath = null;
-    setBackground(Color.WHITE);
-}
+        this.maze = maze;
+        solutionPath = null;
+        exploredCells = new ArrayList<>();
+        showExploredCells = false;
+        setBackground(Color.WHITE);
+    }
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -37,24 +41,38 @@ public class MazePanel extends JPanel {
                 int x = col * cellWidth;
                 int y = row * cellHeight;
 
-                // Colour the starting cell green
-if (row == 0 && col == 0) {
-    g.setColor(Color.GREEN);
-    g.fillRect(x, y, cellWidth, cellHeight);
-}
+                // Starting cell
+                if (row == 0 && col == 0) {
+                    g.setColor(Color.GREEN);
+                    g.fillRect(x, y, cellWidth, cellHeight);
+                }
 
-// Colour the finishing cell red
-else if (row == maze.getRows() - 1 &&
-         col == maze.getCols() - 1) {
-    g.setColor(Color.RED);
-    g.fillRect(x, y, cellWidth, cellHeight);
-}
+                // Finishing cell
+                else if (row == maze.getRows() - 1 &&
+                         col == maze.getCols() - 1) {
+                    g.setColor(Color.RED);
+                    g.fillRect(x, y, cellWidth, cellHeight);
+                }
 
-// Colour the solution path blue
-else if (solutionPath != null && solutionPath.contains(cell)) {
-    g.setColor(Color.BLUE);
-    g.fillRect(x, y, cellWidth, cellHeight);
-}
+                // Final solution path
+                else if (solutionPath != null &&
+                         solutionPath.contains(cell)) {
+                    g.setColor(Color.BLUE);
+                    g.fillRect(x, y, cellWidth, cellHeight);
+                }
+
+                // Cells explored by BFS
+                else if (showExploredCells &&
+                         exploredCells.contains(cell)) {
+                    g.setColor(Color.YELLOW);
+                    g.fillRect(x, y, cellWidth, cellHeight);
+                }
+
+                // Cells visited during generation
+                else if (cell.isVisited()) {
+                    g.setColor(Color.CYAN);
+                    g.fillRect(x, y, cellWidth, cellHeight);
+                }
 
                 // Draw the walls
                 g.setColor(Color.BLACK);
@@ -78,10 +96,19 @@ else if (solutionPath != null && solutionPath.contains(cell)) {
                 }
             }
         }
-}
-        public void setSolutionPath(List<Cell> path) {
-    solutionPath = path;
-    repaint();
+    }
+
+    // Updates the solution path
+    public void setSolutionPath(List<Cell> path) {
+        solutionPath = path;
+        repaint();
+    }
+
+    // Updates the cells explored by BFS
+    public void setExploredCells(List<Cell> cells) {
+        exploredCells = cells;
+        showExploredCells = true;
+        repaint();
     }
 }
 

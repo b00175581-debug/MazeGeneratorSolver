@@ -1,18 +1,17 @@
+
 import java.util.Random;
 
 public class MazeGenerator {
 
     private Maze maze;
     private Random random;
+    private ArrayStack<Cell> stack;
 
-    public MazeGenerator(Maze maze) {
+    public MazeGenerator(Maze maze) throws StackException {
         this.maze = maze;
         random = new Random();
-    }
 
-    public void generateMaze() throws StackException {
-
-        ArrayStack<Cell> stack = new ArrayStack<>(
+        stack = new ArrayStack<>(
                 maze.getRows() * maze.getCols()
         );
 
@@ -20,60 +19,77 @@ public class MazeGenerator {
         Cell start = maze.getCell(0, 0);
         start.setVisited(true);
         stack.push(start);
+    }
 
-        while (!stack.isEmpty()) {
+    // Performs one step of maze generation
+    public void step() throws StackException {
 
-            Cell current = stack.peek();
+        if (stack.isEmpty()) {
+            return;
+        }
 
-            Cell[] neighbours = new Cell[4];
-            int count = 0;
+        Cell current = stack.peek();
 
-            int row = current.getRow();
-            int col = current.getCol();
+        Cell[] neighbours = new Cell[4];
+        int count = 0;
 
-            // Check the cell above
-            if (row > 0 && !maze.getCell(row - 1, col).isVisited()) {
-                neighbours[count] = maze.getCell(row - 1, col);
-                count++;
-            }
+        int row = current.getRow();
+        int col = current.getCol();
 
-            // Check the cell below
-            if (row < maze.getRows() - 1 &&
-                    !maze.getCell(row + 1, col).isVisited()) {
-                neighbours[count] = maze.getCell(row + 1, col);
-                count++;
-            }
+        // Check the cell above
+        if (row > 0 && !maze.getCell(row - 1, col).isVisited()) {
+            neighbours[count] = maze.getCell(row - 1, col);
+            count++;
+        }
 
-            // Check the cell to the left
-            if (col > 0 && !maze.getCell(row, col - 1).isVisited()) {
-                neighbours[count] = maze.getCell(row, col - 1);
-                count++;
-            }
+        // Check the cell below
+        if (row < maze.getRows() - 1 &&
+                !maze.getCell(row + 1, col).isVisited()) {
+            neighbours[count] = maze.getCell(row + 1, col);
+            count++;
+        }
 
-            // Check the cell to the right
-            if (col < maze.getCols() - 1 &&
-                    !maze.getCell(row, col + 1).isVisited()) {
-                neighbours[count] = maze.getCell(row, col + 1);
-                count++;
-            }
+        // Check the cell to the left
+        if (col > 0 && !maze.getCell(row, col - 1).isVisited()) {
+            neighbours[count] = maze.getCell(row, col - 1);
+            count++;
+        }
 
-            if (count > 0) {
+        // Check the cell to the right
+        if (col < maze.getCols() - 1 &&
+                !maze.getCell(row, col + 1).isVisited()) {
+            neighbours[count] = maze.getCell(row, col + 1);
+            count++;
+        }
 
-                // Pick a random unvisited neighbour
-                Cell next = neighbours[random.nextInt(count)];
+        if (count > 0) {
 
-                // Remove the wall between the two cells
-                removeWalls(current, next);
+            // Pick a random unvisited neighbour
+            Cell next = neighbours[random.nextInt(count)];
 
-                // Visit and push the new cell
-                next.setVisited(true);
-                stack.push(next);
+            // Remove the wall between the two cells
+            removeWalls(current, next);
 
-            } else {
+            // Visit and push the new cell
+            next.setVisited(true);
+            stack.push(next);
 
-                // No unvisited neighbours, so backtrack
-                stack.pop();
-            }
+        } else {
+
+            // No unvisited neighbours, so backtrack
+            stack.pop();
+        }
+    }
+
+    // Checks whether generation has finished
+    public boolean isFinished() {
+        return stack.isEmpty();
+    }
+
+    // Allows the original full-generation method to still work
+    public void generateMaze() throws StackException {
+        while (!isFinished()) {
+            step();
         }
     }
 
@@ -100,3 +116,4 @@ public class MazeGenerator {
         }
     }
 }
+
